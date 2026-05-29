@@ -1,0 +1,1495 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>安速 - 未入仓运单</title>
+  <style>
+    :root {
+      --brand: #1592ff;
+      --brand-dark: #0879dc;
+      --brand-soft: #e7f4ff;
+      --danger: #ff4d2e;
+      --success: #12a86b;
+      --warning: #ff8a00;
+      --text: #263645;
+      --muted: #7b8994;
+      --line: #e4e9ef;
+      --line-soft: #edf1f5;
+      --sidebar: #edf7ff;
+      --page: #f3f6f9;
+      --white: #fff;
+      --shadow: 0 2px 12px rgba(23, 45, 68, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 1280px;
+      min-height: 100vh;
+      color: var(--text);
+      background: var(--page);
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+      font-size: 14px;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      height: 100vh;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      position: relative;
+      background: var(--sidebar);
+      border-right: 1px solid #deedf8;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo {
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.42);
+    }
+
+    .logo-mark {
+      width: 38px;
+      height: 24px;
+      position: relative;
+    }
+
+    .logo-mark::before,
+    .logo-mark::after {
+      content: "";
+      position: absolute;
+      bottom: 2px;
+      border-radius: 3px 3px 1px 1px;
+      transform-origin: bottom;
+    }
+
+    .logo-mark::before {
+      width: 10px;
+      height: 22px;
+      left: 9px;
+      background: #ff8b00;
+      transform: skewX(-28deg);
+    }
+
+    .logo-mark::after {
+      width: 10px;
+      height: 28px;
+      left: 20px;
+      background: #df1e26;
+      transform: skewX(-28deg);
+    }
+
+    .logo-main {
+      color: #e3272d;
+      font-weight: 800;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .logo-sub {
+      color: #777f88;
+      font-size: 11px;
+      margin-top: 3px;
+      white-space: nowrap;
+    }
+
+    .menu {
+      padding: 14px 0 26px;
+      overflow: auto;
+      flex: 1;
+    }
+
+    .menu-item {
+      width: 100%;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 22px 0 26px;
+      color: #344758;
+      background: transparent;
+      border-left: 3px solid transparent;
+      text-align: left;
+    }
+
+    .menu-item svg {
+      width: 17px;
+      height: 17px;
+      stroke-width: 2;
+      color: #52616d;
+      flex: 0 0 auto;
+    }
+
+    .menu-item .chev {
+      margin-left: auto;
+      width: 14px;
+      height: 14px;
+    }
+
+    .menu-item.active {
+      color: var(--brand);
+      background: #dff3ff;
+      border-left-color: var(--brand);
+    }
+
+    .menu-item.active svg {
+      color: var(--brand);
+    }
+
+    .sidebar-bottom {
+      height: 42px;
+      display: grid;
+      place-items: center;
+      color: #52616d;
+      border-top: 1px solid #d8ebf8;
+    }
+
+    .main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: 50px;
+      background: var(--white);
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      height: 100%;
+      padding-left: 20px;
+    }
+
+    .nav button {
+      min-width: 92px;
+      height: 40px;
+      padding: 0 18px;
+      border-radius: 24px;
+      color: #101820;
+      background: transparent;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .nav button.active {
+      color: #fff;
+      background: var(--brand);
+      box-shadow: 0 4px 12px rgba(21, 146, 255, 0.28);
+    }
+
+    .top-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 0 22px;
+    }
+
+    .quick-order {
+      height: 35px;
+      padding: 0 19px;
+      color: #fff;
+      background: var(--brand);
+      border-radius: 2px;
+      font-weight: 700;
+    }
+
+    .bell {
+      position: relative;
+      color: #2b3e4f;
+    }
+
+    .bell svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .badge {
+      position: absolute;
+      top: -11px;
+      right: -10px;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      color: #fff;
+      background: #ff5a5f;
+      font-size: 12px;
+      display: grid;
+      place-items: center;
+      border: 2px solid #fff;
+    }
+
+    .user {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #334;
+      white-space: nowrap;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: #66c95f;
+      font-weight: 700;
+    }
+
+    .tabsbar {
+      height: 38px;
+      background: var(--white);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .hamburger,
+    .tiny-arrow {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      color: #314252;
+      background: transparent;
+    }
+
+    .tab {
+      height: 30px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 12px;
+      color: #687785;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      white-space: nowrap;
+    }
+
+    .tab.active {
+      color: #fff;
+      background: var(--brand);
+      border-color: var(--brand);
+    }
+
+    .content {
+      min-height: 0;
+      flex: 1;
+      padding: 12px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .filter-card,
+    .table-card {
+      background: var(--white);
+      border-radius: 3px;
+      box-shadow: var(--shadow);
+    }
+
+    .filter-card {
+      padding: 14px 14px 13px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(270px, 1fr));
+      column-gap: 34px;
+      row-gap: 2px;
+      padding: 0 0 10px;
+    }
+
+    .field {
+      display: grid;
+      grid-template-columns: 82px minmax(0, 1fr);
+      align-items: center;
+      min-width: 0;
+      gap: 8px;
+    }
+
+    .field label {
+      justify-self: end;
+      color: #303e4c;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      height: 30px;
+      border: 1px solid #d9dee5;
+      color: #4d5b68;
+      background: #fff;
+      padding: 0 12px;
+      outline: 0;
+      border-radius: 2px;
+    }
+
+    .field input::placeholder {
+      color: #b6c0ca;
+    }
+
+    .date-range {
+      display: grid;
+      grid-template-columns: 1fr 28px 1fr 30px;
+      align-items: center;
+    }
+
+    .date-range input {
+      min-width: 0;
+      border-right: 0;
+      height: 30px;
+    }
+
+    .date-range input + span {
+      height: 30px;
+      display: grid;
+      place-items: center;
+      color: #abb5bf;
+      border-top: 1px solid #d9dee5;
+      border-bottom: 1px solid #d9dee5;
+    }
+
+    .date-range .calendar {
+      border: 1px solid #d9dee5;
+      border-left: 0;
+      height: 30px;
+      color: #abb5bf;
+      display: grid;
+      place-items: center;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 14px;
+      padding-left: 0;
+      margin-left: 0;
+    }
+
+    .primary {
+      height: 36px;
+      min-width: 70px;
+      padding: 0 18px;
+      color: #fff;
+      background: var(--brand);
+      border-radius: 2px;
+      font-weight: 700;
+    }
+
+    .secondary {
+      height: 36px;
+      min-width: 70px;
+      padding: 0 18px;
+      color: #354656;
+      background: #fff;
+      border: 1px solid #d8dee5;
+      border-radius: 2px;
+      font-weight: 700;
+    }
+
+    .table-card {
+      min-height: 0;
+      flex: 1;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 12px;
+    }
+
+    .tool-button {
+      height: 36px;
+      min-width: 82px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 0 15px;
+      color: #fff;
+      background: var(--brand);
+      border-radius: 2px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .tool-button:hover,
+    .primary:hover,
+    .quick-order:hover {
+      background: var(--brand-dark);
+    }
+
+    .tool-button.danger {
+      background: var(--danger);
+    }
+    .tool-button.danger:hover {
+      background: #e04426;
+    }
+
+    .tool-dropdown {
+      position: relative;
+      display: inline-flex;
+    }
+    .tool-dropdown .tool-button {
+      min-width: 82px;
+    }
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      margin-top: 2px;
+      min-width: 140px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      box-shadow: var(--shadow);
+      z-index: 15;
+      display: none;
+      overflow: hidden;
+    }
+    .dropdown-menu.show {
+      display: block;
+    }
+    .dropdown-menu button {
+      display: block;
+      width: 100%;
+      height: 34px;
+      padding: 0 14px;
+      color: #354656;
+      background: #fff;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .dropdown-menu button:hover {
+      background: var(--brand-soft);
+    }
+
+    .gear {
+      margin-left: auto;
+      width: 43px;
+      min-width: 43px;
+      padding: 0;
+    }
+
+    .table-shell {
+      min-height: 0;
+      flex: 1;
+      border: 1px solid var(--line);
+      overflow: auto;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1890px;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th,
+    td {
+      height: 36px;
+      border-right: 1px solid var(--line-soft);
+      border-bottom: 1px solid var(--line-soft);
+      padding: 0 10px;
+      color: #566574;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      color: #3c4a56;
+      background: #f7f9fb;
+      font-weight: 800;
+    }
+
+    tbody tr:hover {
+      background: #f8fcff;
+    }
+
+    .idx {
+      width: 48px;
+      color: #798795;
+    }
+
+    .check {
+      width: 52px;
+    }
+
+    .waybill {
+      color: #168cff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 58px;
+      height: 24px;
+      padding: 0 8px;
+      color: #fff;
+      background: #0a9af0;
+      border-radius: 2px;
+      font-weight: 700;
+    }
+
+    .status-warn {
+      color: #fff;
+      background: #ff5a1f;
+      border-radius: 2px;
+      padding: 4px 9px;
+      font-weight: 800;
+    }
+
+    .status-done {
+      color: #fff;
+      background: #15a8f4;
+      border-radius: 2px;
+      padding: 4px 9px;
+      font-weight: 800;
+    }
+
+    .count-red {
+      color: #ff2c1e;
+      font-weight: 800;
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--brand);
+    }
+
+    .pagination {
+      height: 46px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      color: #263645;
+      padding: 8px 2px 0;
+      white-space: nowrap;
+    }
+
+    .page-btn,
+    .page-num {
+      height: 28px;
+      min-width: 28px;
+      padding: 0 8px;
+      background: #fff;
+      color: #314252;
+      border: 1px solid transparent;
+      border-radius: 2px;
+    }
+
+    .page-num.active {
+      color: var(--brand);
+      border-color: var(--brand);
+    }
+
+    .page-size,
+    .jump-input {
+      height: 30px;
+      border: 1px solid #d8dee5;
+      color: #354656;
+      border-radius: 2px;
+      background: #fff;
+      padding: 0 8px;
+    }
+
+    .jump-input {
+      width: 52px;
+      text-align: center;
+    }
+
+    .float-tools {
+      position: fixed;
+      right: 17px;
+      bottom: 250px;
+      display: grid;
+      gap: 10px;
+      z-index: 6;
+    }
+
+    .float-tools button {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: #f08bb1;
+      box-shadow: 0 4px 12px rgba(240, 139, 177, 0.35);
+    }
+
+    .toast {
+      position: fixed;
+      top: 82px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 360px;
+      padding: 12px 24px;
+      color: #fff;
+      background: var(--danger);
+      border-radius: 4px;
+      box-shadow: var(--shadow);
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.2s ease;
+      z-index: 20;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    .material-check-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px 16px;
+    }
+    .material-check-grid label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #3b4a58;
+      cursor: pointer;
+    }
+    .material-check-grid input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--brand);
+    }
+
+    .modal-mask {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(30, 46, 62, 0.3);
+      z-index: 30;
+    }
+
+    .modal-mask.show {
+      display: flex;
+    }
+
+    .modal {
+      width: 520px;
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+      overflow: hidden;
+    }
+
+    .modal-head {
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line-soft);
+      font-weight: 800;
+    }
+
+    .modal-close {
+      width: 30px;
+      height: 30px;
+      background: transparent;
+      color: #6c7884;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .modal-body {
+      padding: 18px;
+    }
+
+    .column-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px 16px;
+    }
+
+    .column-grid label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #3b4a58;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 0 18px 18px;
+    }
+
+    @media (max-width: 1500px) {
+      .filters {
+        grid-template-columns: repeat(2, minmax(330px, 1fr));
+        column-gap: 34px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="logo" aria-label="ANSU 安速">
+        <div class="logo-mark"></div>
+        <div>
+          <div class="logo-main">ANSU</div>
+          <div class="logo-sub">安速捷运</div>
+        </div>
+      </div>
+      <nav class="menu" id="sideMenu"></nav>
+      <div class="sidebar-bottom">‹</div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <nav class="nav" id="mainNav"></nav>
+        <div class="top-actions">
+          <button class="quick-order" id="quickOrder">直客录单</button>
+          <div class="bell" title="消息">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="badge">3</span>
+          </div>
+          <div class="user">
+            <span class="avatar">人</span>
+            <span>天朗</span>
+          </div>
+          <button class="tiny-arrow">›</button>
+        </div>
+      </header>
+
+      <div class="tabsbar">
+        <button class="hamburger" title="菜单">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <button class="tiny-arrow">‹</button>
+        <div class="tab">预报下单 ×</div>
+        <div class="tab">预留仓 ×</div>
+        <div class="tab">运单 ×</div>
+        <div class="tab active">未入仓运单 ×</div>
+      </div>
+
+      <section class="content">
+        <section class="filter-card">
+          <div class="filters" id="filters"></div>
+          <div class="filter-actions">
+            <button class="primary" id="searchBtn">搜 索</button>
+            <button class="secondary" id="resetBtn">重 置</button>
+          </div>
+        </section>
+
+        <section class="table-card">
+          <div class="toolbar" id="toolbar"></div>
+          <div class="table-shell">
+            <table>
+              <thead id="tableHead"></thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="pagination"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="float-tools">
+    <button title="快捷工具">⌘</button>
+    <button title="客服">达</button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="modal-mask" id="materialModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="materialTitle">
+      <div class="modal-head">
+        <span id="materialTitle">批量修改材质</span>
+        <button class="modal-close" id="closeMaterialModal">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin:0 0 12px;color:#3b4a58;font-weight:700;">请选择新材质（可多选）：</p>
+        <div class="material-check-grid" id="materialCheckGrid">
+          <label><input type="checkbox" data-material="普货" />普货</label>
+          <label><input type="checkbox" data-material="纺织品" />纺织品</label>
+          <label><input type="checkbox" data-material="带电" />带电</label>
+          <label><input type="checkbox" data-material="带磁" />带磁</label>
+          <label><input type="checkbox" data-material="液体" />液体</label>
+          <label><input type="checkbox" data-material="粉末" />粉末</label>
+          <label><input type="checkbox" data-material="化妆品" />化妆品</label>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="secondary" id="cancelMaterial">取 消</button>
+        <button class="primary" id="applyMaterial">确 定</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="columnModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="columnTitle">
+      <div class="modal-head">
+        <span id="columnTitle">列设置</span>
+        <button class="modal-close" id="closeModal">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="column-grid" id="columnGrid"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="secondary" id="showAllColumns">全部显示</button>
+        <button class="primary" id="applyColumns">确 定</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const icons = {
+      user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>',
+      users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+      file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>',
+      box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg>',
+      wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12h4v4h-4a2 2 0 0 1 0-4z"/></svg>',
+      gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 .6 1.65 1.65 0 0 0-.33 1.82 2 2 0 1 1-3.34 0A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-.6-1 1.65 1.65 0 0 0-1.82-.33 2 2 0 1 1 0-3.34A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-.6 1.65 1.65 0 0 0 .33-1.82 2 2 0 1 1 3.34 0A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.37.16.7.37 1 .6.5.38 1.14.5 1.82.33a2 2 0 1 1 0 3.34A1.65 1.65 0 0 0 19.4 15z"/></svg>'
+    };
+
+    const navItems = ["运单管理", "财务管理", "管理中心", "配置中心", "导出中心", "报表中心", "审批管理"];
+    const menuItems = [
+      ["预报下单", icons.users],
+      ["未入仓运单", icons.user, true],
+      ["业务运单", icons.user, false, true],
+      ["客服运单管理", icons.user, false, true],
+      ["海外中转单", icons.user, false, true],
+      ["财务运单", icons.user, false, true],
+      ["报价审批", icons.users],
+      ["来款登记", icons.users],
+      ["出仓单", icons.users],
+      ["客户余额", icons.users],
+      ["工单", icons.user, false, true],
+      ["服务订单", icons.user, false, true],
+      ["修改材积运单", icons.users],
+      ["仓库费用日志", icons.users],
+      ["货件管理", icons.user, false, true],
+      ["预留仓", icons.users]
+    ];
+
+    const filterSchema = [
+      ["forecastNo", "预报号", "支持批量(空格/逗号隔开)", "text"],
+      ["waybill", "运单号", "支持批量(空格/逗号隔开)", "text"],
+      ["fba", "FBA单号", "支持批量(空格/逗号隔开)", "text"],
+      ["sales", "业务员", "业务员", "text"],
+      ["customer", "客户简称", "客户简称", "text"],
+      ["follow", "跟单员", "跟单员", "text"],
+      ["invoice", "制作发票", "制作发票", "select", ["", "未制作发票", "已制作发票"]],
+      ["receiveType", "收货类型", "收货类型", "select", ["", "自送", "提货", "中转"]],
+      ["receiver", "收货司机", "收货司机", "text"],
+      ["orderDate", "下单时间", "", "date"],
+      ["pickupDate", "取货时间", "", "date"],
+      ["unit", "经营单位", "经营单位", "text"],
+      ["channel", "渠道", "渠道", "text"],
+      ["warehouse", "仓库代码", "仓库代码", "text"],
+      ["approved", "是否推单", "是否推单", "select", ["", "是", "否"]],
+      ["hasReturn", "有无退运保", "有无退运保", "select", ["", "有", "无"]],
+      ["reportType", "报关方式", "报关方式", "select", ["", "报关退税", "托普报关", "不报关"]],
+      ["inspection", "国内查验室", "国内查验室", "select", ["", "A区", "B区", "C区"]]
+    ];
+
+    const columns = [
+      { key: "idx", label: "#", width: "48px", fixed: true },
+      { key: "check", label: "", width: "52px", fixed: true },
+      { key: "waybill", label: "运单号", width: "170px" },
+      { key: "fba", label: "FBA单号", width: "142px" },
+      { key: "forecastNo", label: "预报单号", width: "150px" },
+      { key: "material", label: "材质", width: "118px" },
+      { key: "reportType", label: "报关方式", width: "105px" },
+      { key: "taxType", label: "交税方式", width: "105px" },
+      { key: "postcode", label: "邮编", width: "100px" },
+      { key: "warehouse", label: "仓库代码", width: "95px" },
+      { key: "shipType", label: "运单类型", width: "105px" },
+      { key: "merge", label: "合并报关号", width: "118px" },
+      { key: "fail", label: "推单失败原因", width: "130px" },
+      { key: "customer", label: "客户简称", width: "112px" },
+      { key: "destination", label: "目的地", width: "92px" },
+      { key: "pieces", label: "件数", width: "92px" },
+      { key: "channel", label: "渠道", width: "158px" },
+      { key: "invoice", label: "制作发票", width: "105px" },
+      { key: "remark", label: "客户备注", width: "210px" }
+    ];
+
+    const sampleChannels = [
+      "芝加哥海铁32日达-卡派",
+      "萨凡纳普航48日达-卡派",
+      "纽约直航42日达-卡派",
+      "洛杉矶普船28日达-卡派",
+      "休斯顿普航30日达-卡派",
+      "安杰1号-卡派包税",
+      "英国快线25日达-卡派",
+      "加拿大加东直航30日达",
+      "义乌UPS红单首发双清"
+    ];
+    const customers = ["昆尼科技", "树懒科技", "苏芳百货", "威曼服贸", "宏霖商贸", "商宇光温", "海宁光温"];
+    const materials = ["", "普货", "纺织品", "纺织品,普货"];
+    const warehouses = ["FWA4", "RDU2", "ORF2-23321", "LGB8", "IAH3", "AVP1", "GYR2", "MCC1", "MDW2", "ABE8", "LBA4", "YHM1", "GYR3"];
+    const postcodes = ["46809-9771", "27577", "23321-1425", "92376-8624", "77032", "18202-9361", "85395-7672", "95742", "60433-3280", "08518-2200", "DN11 0GU", "L0R 1W1", "85043-2356"];
+    const fbas = ["", "", "", "", "FBA19DXQRZB6", "", "", "", "FBA19DXF551K", "", "FBA19DW217BQ", "FBA19DW2H3HK", "FBA19DW3BQ3S", "FBA15LTNKB9K", "FBA19DWZK5NB", "FBA19DX6Y9N7", "FBA19F1W7MKW"];
+    const baseWaybills = ["USDGAS2605260144", "USDGAS2605260143", "USDGAS2605260146", "USDGAS2605260145", "USSZAS2605260110", "USDGAS2605260147", "USSZAS2605260114", "USSZAS2605260113", "USSZAS2605260111", "USSZAS2605260112", "USSZAS2605250402", "USSZAS2605250403", "USSZAS2605250398", "UKSZAS2605250378", "USSZAS2605250407", "USSZAS2605250567", "USSZAS2605270327"];
+    const piecePairs = [[43, 69], [37, 68], [27, 45], [27, 38], [27, 29], [26, 49], [26, 28], [25, 27], [25, 27], [22, 24], [9, 10], [7, 10], [4, 5], [4, 9], [3, 8], [2, 5], [1, 2]];
+    const remarks = [
+      "FBA19DMVYKRT-,US",
+      "FBA19DMW65J7",
+      "FBA19DMS1RZD-",
+      "FBA19DM12RSG",
+      "FBA19DXQRZB6",
+      "FBA19DMRNMLN-",
+      "FBA19DX5CMTQ",
+      "FBA19DXG4PFM",
+      "FBA19DXF551K",
+      "FBA19DXQ74W1",
+      "FBA19DW217BQ,US",
+      "FBA19DW2H3HK,US",
+      "FBA19DW3BQ3S,US",
+      "客户分两个仓库发货",
+      "",
+      "",
+      "USSZAS2605270325"
+    ];
+
+    const state = {
+      page: 1,
+      pageSize: 50,
+      selected: new Set(),
+      filters: {},
+      visible: new Set(columns.map(col => col.key)),
+      activeNav: "运单管理",
+      records: []
+    };
+
+    function buildRecords() {
+      const records = [];
+      for (let i = 0; i < 1351; i++) {
+        const base = i % baseWaybills.length;
+        const batch = Math.floor(i / baseWaybills.length);
+        const waybill = batch === 0 ? baseWaybills[base] : baseWaybills[base].replace(/\d{4}$/, String(1400 + i).slice(-4));
+        const pair = piecePairs[base];
+        records.push({
+          id: "row-" + i,
+          waybill,
+          fba: fbas[base] || (i % 5 === 0 ? "FBA19D" + String(900000 + i) : ""),
+          forecastNo: i % 3 === 1 ? "YBSAZS2605260089" : i % 6 === 0 ? "YBSAZS2605270204" : "YBDGAS2605260102",
+          material: materials[(base + batch) % materials.length],
+          reportType: i % 13 === 14 ? "不报关" : i % 9 === 5 ? "托普报关" : "报关退税",
+          taxType: i % 14 === 13 ? "自税递延" : "包税",
+          postcode: postcodes[(base + batch) % postcodes.length],
+          warehouse: warehouses[(base + batch) % warehouses.length],
+          shipType: i % 11 === 4 ? "卡派" : "亚马逊",
+          merge: i % 10 === 0 ? "HBBG" + (260520 + i) : "",
+          fail: "是",
+          customer: customers[(base + Math.floor(i / 9)) % customers.length],
+          destination: i % 17 === 13 ? "英国" : i % 19 === 14 ? "加拿大" : "美国",
+          pieces: `${Math.max(1, pair[0] - (batch % 4))} / ${Math.max(pair[0] + 1, pair[1] - (batch % 7))}`,
+          channel: sampleChannels[(base + batch) % sampleChannels.length],
+          invoice: i % 4 === 0 || base >= 10 ? "已制作发票" : "未制作发票",
+          remark: remarks[base],
+          sales: ["王明", "李然", "周琪"][i % 3],
+          follow: ["韩玲", "赵敏", "陈工"][i % 3],
+          unit: ["安速物流", "速联供应链", "盛航国际"][i % 3],
+          receiveType: ["自送", "提货", "中转"][i % 3],
+          approved: "是",
+          hasReturn: i % 8 === 0 ? "有" : "无"
+        });
+      }
+      return records;
+    }
+
+    function renderNav() {
+      document.getElementById("mainNav").innerHTML = navItems.map(item => (
+        `<button class="${item === state.activeNav ? "active" : ""}" data-nav="${item}">${item}</button>`
+      )).join("");
+    }
+
+    function renderMenu() {
+      document.getElementById("sideMenu").innerHTML = menuItems.map(([label, icon, active, hasChild]) => `
+        <button class="menu-item ${active ? "active" : ""}" data-menu="${label}">
+          ${icon}
+          <span>${label}</span>
+          ${hasChild ? '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m6 9 6 6 6-6"/></svg>' : ""}
+        </button>
+      `).join("");
+    }
+
+    function renderFilters() {
+      document.getElementById("filters").innerHTML = filterSchema.map(([key, label, placeholder, type, options]) => {
+        if (type === "select") {
+          return `<div class="field">
+            <label for="${key}">${label}</label>
+            <select id="${key}" data-filter="${key}">
+              ${options.map(item => `<option value="${item}">${item || placeholder}</option>`).join("")}
+            </select>
+          </div>`;
+        }
+        if (type === "date") {
+          return `<div class="field">
+            <label>${label}</label>
+            <div class="date-range">
+              <input type="text" data-filter="${key}Start" placeholder="开始日期" />
+              <span>→</span>
+              <input type="text" data-filter="${key}End" placeholder="结束日期" />
+              <span class="calendar">□</span>
+            </div>
+          </div>`;
+        }
+        return `<div class="field">
+          <label for="${key}">${label}</label>
+          <input id="${key}" type="text" data-filter="${key}" placeholder="${placeholder}" />
+        </div>`;
+      }).join("");
+    }
+
+    function renderToolbar() {
+      const dropdowns = {
+        batch: [["批量修改材质", "batchMaterial"]]
+      };
+      const buttons = [
+        ["更改国家/渠道", false, "channel"],
+        ["修改客户备注", false, "remark"],
+        ["修改内部备注", false, "innerRemark"],
+        ["手动拣货", false, "pick"],
+        ["制作发票", false, "invoice"],
+        ["创建工单", false, "ticket"],
+        ["合并报关", false, "merge"],
+        ["修改仓库", false, "warehouse"],
+        ["查看统计", false, "stats"],
+        ["小包管理", true, "parcel"],
+        ["推送下单", true, "push"],
+        ["箱标管理", true, "label"],
+        ["导出", true, "export"]
+      ];
+      document.getElementById("toolbar").innerHTML =
+        '<span class="tool-dropdown">' +
+        '<button class="tool-button" id="batchBtn">批量操作⌄</button>' +
+        '<div class="dropdown-menu" id="batchMenu">' +
+        '<button data-action="batchMaterial">批量修改材质</button>' +
+        '</div>' +
+        '</span>' +
+        buttons.map(([label, arrow, action]) => (
+          `<button class="tool-button" data-action="${action}">${label}${arrow ? "⌄" : ""}</button>`
+        )).join("") + `<button class="tool-button gear" id="gearBtn" title="列设置">${icons.gear}</button>`;
+    }
+
+    function getFilteredRecords() {
+      const filters = state.filters;
+      const multiMatch = (value, query) => {
+        if (!query) return true;
+        const parts = query.split(/[\s,，]+/).filter(Boolean);
+        return parts.some(part => String(value || "").toLowerCase().includes(part.toLowerCase()));
+      };
+
+      return state.records.filter(record => {
+        if (!multiMatch(record.forecastNo, filters.forecastNo)) return false;
+        if (!multiMatch(record.waybill, filters.waybill)) return false;
+        if (!multiMatch(record.fba, filters.fba)) return false;
+        if (!multiMatch(record.customer, filters.customer)) return false;
+        if (!multiMatch(record.channel, filters.channel)) return false;
+        if (!multiMatch(record.warehouse, filters.warehouse)) return false;
+        if (filters.invoice && record.invoice !== filters.invoice) return false;
+        if (filters.reportType && record.reportType !== filters.reportType) return false;
+        if (filters.sales && !multiMatch(record.sales, filters.sales)) return false;
+        if (filters.follow && !multiMatch(record.follow, filters.follow)) return false;
+        if (filters.receiveType && record.receiveType !== filters.receiveType) return false;
+        if (filters.approved && record.approved !== filters.approved) return false;
+        if (filters.unit && !multiMatch(record.unit, filters.unit)) return false;
+        if (filters.hasReturn && record.hasReturn !== filters.hasReturn) return false;
+        return true;
+      });
+    }
+
+    function renderTable() {
+      const visibleColumns = columns.filter(col => col.fixed || state.visible.has(col.key));
+      document.getElementById("tableHead").innerHTML = `<tr>${visibleColumns.map(col => {
+        const style = `style="width:${col.width}"`;
+        if (col.key === "check") {
+          return `<th class="check" ${style}><input type="checkbox" id="selectAll" /></th>`;
+        }
+        return `<th ${style}>${col.label}</th>`;
+      }).join("")}</tr>`;
+
+      const filtered = getFilteredRecords();
+      const totalPages = Math.max(1, Math.ceil(filtered.length / state.pageSize));
+      if (state.page > totalPages) state.page = totalPages;
+      const start = (state.page - 1) * state.pageSize;
+      const pageRows = filtered.slice(start, start + state.pageSize);
+
+      document.getElementById("tableBody").innerHTML = pageRows.map((record, index) => `<tr>
+        ${visibleColumns.map(col => renderCell(col, record, start + index)).join("")}
+      </tr>`).join("");
+
+      const pageIds = pageRows.map(row => row.id);
+      const allCurrentSelected = pageIds.length > 0 && pageIds.every(id => state.selected.has(id));
+      const selectAll = document.getElementById("selectAll");
+      if (selectAll) selectAll.checked = allCurrentSelected;
+      renderPagination(filtered.length, totalPages);
+    }
+
+    function renderCell(col, record, absoluteIndex) {
+      if (col.key === "idx") return `<td class="idx">${absoluteIndex + 1}</td>`;
+      if (col.key === "check") {
+        return `<td class="check"><input type="checkbox" class="row-check" data-id="${record.id}" ${state.selected.has(record.id) ? "checked" : ""} /></td>`;
+      }
+      if (col.key === "waybill") return `<td><span class="waybill" data-open="${record.id}">${record.waybill}</span></td>`;
+      if (col.key === "shipType") return `<td><span class="tag">${record.shipType}</span></td>`;
+      if (col.key === "invoice") {
+        const cls = record.invoice === "已制作发票" ? "status-done" : "status-warn";
+        return `<td><span class="${cls}">${record.invoice}</span></td>`;
+      }
+      if (col.key === "pieces") return `<td><span class="count-red">${record.pieces}</span></td>`;
+      return `<td title="${record[col.key] || ""}">${record[col.key] || ""}</td>`;
+    }
+
+    function renderPagination(total, totalPages) {
+      const pages = [];
+      const current = state.page;
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || Math.abs(i - current) <= 2) {
+          pages.push(`<button class="page-num ${i === current ? "active" : ""}" data-page="${i}">${i}</button>`);
+        } else if (pages[pages.length - 1] !== "<span>···</span>") {
+          pages.push("<span>···</span>");
+        }
+      }
+      document.getElementById("pagination").innerHTML = `
+        <span>共 ${total} 条</span>
+        <button class="page-btn" data-step="-1">‹</button>
+        ${pages.join("")}
+        <button class="page-btn" data-step="1">›</button>
+        <select class="page-size" id="pageSize">
+          ${[20, 50, 100, 200].map(size => `<option value="${size}" ${size === state.pageSize ? "selected" : ""}>${size} 条/页</option>`).join("")}
+        </select>
+        <span>跳至</span>
+        <input class="jump-input" id="jumpPage" />
+        <span>页</span>
+      `;
+    }
+
+    function renderColumnsModal() {
+      document.getElementById("columnGrid").innerHTML = columns
+        .filter(col => !col.fixed)
+        .map(col => `<label><input type="checkbox" data-column="${col.key}" ${state.visible.has(col.key) ? "checked" : ""} />${col.label}</label>`)
+        .join("");
+    }
+
+    function collectFilters() {
+      const values = {};
+      document.querySelectorAll("[data-filter]").forEach(input => {
+        values[input.dataset.filter] = input.value.trim();
+      });
+      state.filters = values;
+      state.page = 1;
+      renderTable();
+      toast(`已筛选出 ${getFilteredRecords().length} 条未入仓运单`);
+    }
+
+    function resetFilters() {
+      document.querySelectorAll("[data-filter]").forEach(input => {
+        input.value = "";
+      });
+      state.filters = {};
+      state.page = 1;
+      renderTable();
+      toast("筛选条件已重置");
+    }
+
+    function selectedRecords() {
+      return state.records.filter(record => state.selected.has(record.id));
+    }
+
+    function requireSelection(actionName) {
+      const selected = selectedRecords();
+      if (selected.length === 0) {
+        toast(`${actionName}需要先勾选运单`);
+        return [];
+      }
+      return selected;
+    }
+
+    function toolbarAction(action) {
+      if (action === "export") {
+        exportCsv();
+        return;
+      }
+      if (action === "stats") {
+        const filtered = getFilteredRecords();
+        const noInvoice = filtered.filter(row => row.invoice === "未制作发票").length;
+        toast(`当前 ${filtered.length} 条，未制作发票 ${noInvoice} 条，已选 ${state.selected.size} 条`);
+        return;
+      }
+      if (action === "batchMaterial") {
+        const selected = selectedRecords();
+        if (selected.length === 0) {
+          toast("请勾选运单！");
+          return;
+        }
+        document.querySelectorAll("#materialCheckGrid input").forEach(cb => cb.checked = false);
+        document.getElementById("materialModal").classList.add("show");
+        return;
+      }
+      const labels = {
+        batch: "批量操作",
+        channel: "更改国家/渠道",
+        remark: "修改客户备注",
+        innerRemark: "修改内部备注",
+        pick: "手动拣货",
+        invoice: "制作发票",
+        ticket: "创建工单",
+        merge: "合并报关",
+        warehouse: "修改仓库",
+        parcel: "小包管理",
+        push: "推送下单",
+        label: "箱标管理"
+      };
+      const selected = requireSelection(labels[action]);
+      if (!selected.length) return;
+      if (action === "invoice") {
+        selected.forEach(row => row.invoice = "已制作发票");
+        renderTable();
+      }
+      toast(`${labels[action]}已处理 ${selected.length} 条运单`);
+    }
+
+    function exportCsv() {
+      const rows = selectedRecords().length ? selectedRecords() : getFilteredRecords();
+      const exportColumns = columns.filter(col => !["idx", "check"].includes(col.key) && state.visible.has(col.key));
+      const csv = [
+        exportColumns.map(col => col.label).join(","),
+        ...rows.map(row => exportColumns.map(col => `"${String(row[col.key] || "").replace(/"/g, '""')}"`).join(","))
+      ].join("\n");
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `未入仓运单-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      toast(`已导出 ${rows.length} 条数据`);
+    }
+
+    let toastTimer;
+    function toast(message) {
+      const el = document.getElementById("toast");
+      el.textContent = message;
+      el.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+    }
+
+    function bindEvents() {
+      document.getElementById("mainNav").addEventListener("click", event => {
+        const button = event.target.closest("[data-nav]");
+        if (!button) return;
+        state.activeNav = button.dataset.nav;
+        renderNav();
+        toast(`已切换到${state.activeNav}`);
+      });
+
+      document.getElementById("sideMenu").addEventListener("click", event => {
+        const item = event.target.closest("[data-menu]");
+        if (!item) return;
+        document.querySelectorAll(".menu-item").forEach(node => node.classList.remove("active"));
+        item.classList.add("active");
+        toast(`当前菜单：${item.dataset.menu}`);
+      });
+
+      document.getElementById("searchBtn").addEventListener("click", collectFilters);
+      document.getElementById("resetBtn").addEventListener("click", resetFilters);
+      document.getElementById("quickOrder").addEventListener("click", () => toast("直客录单入口已打开"));
+
+      document.getElementById("toolbar").addEventListener("click", event => {
+        if (event.target.id === "batchBtn") {
+          document.getElementById("batchMenu").classList.toggle("show");
+          return;
+        }
+        const gear = event.target.closest("#gearBtn");
+        if (gear) {
+          renderColumnsModal();
+          document.getElementById("columnModal").classList.add("show");
+          return;
+        }
+        const button = event.target.closest("[data-action]");
+        if (button) toolbarAction(button.dataset.action);
+      });
+
+      document.addEventListener("click", event => {
+        if (!event.target.closest(".tool-dropdown")) {
+          document.getElementById("batchMenu").classList.remove("show");
+        }
+      });
+
+      document.getElementById("tableHead").addEventListener("change", event => {
+        if (event.target.id !== "selectAll") return;
+        const checked = event.target.checked;
+        const filtered = getFilteredRecords();
+        const start = (state.page - 1) * state.pageSize;
+        filtered.slice(start, start + state.pageSize).forEach(row => {
+          if (checked) state.selected.add(row.id);
+          else state.selected.delete(row.id);
+        });
+        renderTable();
+      });
+
+      document.getElementById("tableBody").addEventListener("change", event => {
+        const checkbox = event.target.closest(".row-check");
+        if (!checkbox) return;
+        if (checkbox.checked) state.selected.add(checkbox.dataset.id);
+        else state.selected.delete(checkbox.dataset.id);
+        renderTable();
+      });
+
+      document.getElementById("tableBody").addEventListener("click", event => {
+        const waybill = event.target.closest("[data-open]");
+        if (!waybill) return;
+        const row = state.records.find(item => item.id === waybill.dataset.open);
+        toast(`打开运单 ${row.waybill}：${row.customer} / ${row.channel}`);
+      });
+
+      document.getElementById("pagination").addEventListener("click", event => {
+        const page = event.target.closest("[data-page]");
+        const step = event.target.closest("[data-step]");
+        const totalPages = Math.max(1, Math.ceil(getFilteredRecords().length / state.pageSize));
+        if (page) state.page = Number(page.dataset.page);
+        if (step) state.page = Math.min(totalPages, Math.max(1, state.page + Number(step.dataset.step)));
+        if (page || step) renderTable();
+      });
+
+      document.getElementById("pagination").addEventListener("change", event => {
+        if (event.target.id !== "pageSize") return;
+        state.pageSize = Number(event.target.value);
+        state.page = 1;
+        renderTable();
+      });
+
+      document.getElementById("pagination").addEventListener("keydown", event => {
+        if (event.target.id !== "jumpPage" || event.key !== "Enter") return;
+        const totalPages = Math.max(1, Math.ceil(getFilteredRecords().length / state.pageSize));
+        const page = Number(event.target.value);
+        if (Number.isFinite(page) && page >= 1) {
+          state.page = Math.min(totalPages, page);
+          renderTable();
+        }
+      });
+
+      document.getElementById("closeModal").addEventListener("click", () => {
+        document.getElementById("columnModal").classList.remove("show");
+      });
+      document.getElementById("columnModal").addEventListener("click", event => {
+        if (event.target.id === "columnModal") event.currentTarget.classList.remove("show");
+      });
+      document.getElementById("showAllColumns").addEventListener("click", () => {
+        state.visible = new Set(columns.map(col => col.key));
+        renderColumnsModal();
+      });
+      document.getElementById("applyColumns").addEventListener("click", () => {
+        const next = new Set(["idx", "check"]);
+        document.querySelectorAll("[data-column]").forEach(input => {
+          if (input.checked) next.add(input.dataset.column);
+        });
+        state.visible = next;
+        document.getElementById("columnModal").classList.remove("show");
+        renderTable();
+        toast("列显示已更新");
+      });
+
+      // 批量修改材质弹窗事件
+      document.getElementById("closeMaterialModal").addEventListener("click", () => {
+        document.getElementById("materialModal").classList.remove("show");
+      });
+      document.getElementById("materialModal").addEventListener("click", event => {
+        if (event.target.id === "materialModal") event.currentTarget.classList.remove("show");
+      });
+      document.getElementById("cancelMaterial").addEventListener("click", () => {
+        document.getElementById("materialModal").classList.remove("show");
+      });
+      document.getElementById("applyMaterial").addEventListener("click", () => {
+        const selectedMaterials = Array.from(document.querySelectorAll("#materialCheckGrid input:checked")).map(cb => cb.dataset.material);
+        if (selectedMaterials.length === 0) {
+          toast("请选择材质");
+          return;
+        }
+        const newMaterial = selectedMaterials.join(",");
+        const selected = selectedRecords();
+        selected.forEach(row => { row.material = newMaterial; });
+        document.getElementById("materialModal").classList.remove("show");
+        renderTable();
+        toast(`已将 ${selected.length} 条运单材质修改为「${newMaterial}」`);
+      });
+    }
+
+    function init() {
+      state.records = buildRecords();
+      renderNav();
+      renderMenu();
+      renderFilters();
+      renderToolbar();
+      renderTable();
+      bindEvents();
+    }
+
+    init();
+  </script>
+</body>
+</html>
